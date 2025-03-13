@@ -1,77 +1,124 @@
 from datetime import datetime
 
 class Call:
-    def __init__(self, source: str, destination: str , duration: int, timestamp: str, calltype: str):
-        self.source =  source
-        self.destination = destination
-        self._duration = max(0, int(duration)) #make sure is positive
-        self.timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S") #convert to datetime var if needed at future
-        self._calltype = calltype
-    
-    ### getter setters deleters for <duration>
-    #getter
+    def __init__(self, source: str, destination: str, duration: int, timestamp: str, calltype: str):
+        self.source = source if isinstance(source, str) else "Unknown"
+        self.destination = destination if isinstance(destination, str) else "Unknown"
+        self._duration = max(0, duration) if isinstance(duration, int) else 0
+        self._calltype = calltype if calltype in ["inbound", "outbound", "xfer"] else "unknown"
+        
+        # Validate and convert timestamp to datetime object
+        try:
+            self.timestamp = datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            raise ValueError("Invalid date format, use YYYY-MM-DD HH:MM:SS")
+
     @property
     def duration(self):
         return self._duration
 
-    #setter, validate is integer and positive
     @duration.setter
     def duration(self, new_duration):
-        if isinstance(new_duration, int) and new_duration > 0 :
+        if isinstance(new_duration, int) and new_duration > 0:
             self._duration = new_duration
         else:
-            print ("Duration is not valid, not positive or integer")
+            raise ValueError("Duration is not valid, must be a positive integer")
 
-    #deleter
     @duration.deleter
     def duration(self):
         del self._duration
 
-
-    ### get/set/del for <calltype>
-    #getter
     @property
     def calltype(self):
         return self._calltype
 
-    #setter
     @calltype.setter
     def calltype(self, new_calltype):
         if new_calltype in ["inbound", "outbound", "xfer"]:
             self._calltype = new_calltype
         else:
-            print ("calltype is not valid, must be of inbound, outbound, xfer")
-
-    #deleter
+            raise ValueError("Invalid call type. Must be one of: inbound, outbound, xfer")
+    
     @calltype.deleter
     def calltype(self):
         del self._calltype
 
-    
     def __str__(self):
-        return f"Llamada de {self.source} a {self.destination} - Duracion: {self._duration} - Realizada en {self.timestamp} - tipo de llamada {self._calltype} "
-    
-    #check if 2 calls (llamadas) are the same call
-    def __eq__(self, other):
-        return isinstance(other, Call) and \
-                self.source == other.source and \
-                self.destination == other.destination and \
-                self._duration == other._duration and \
-                self.timestamp == other.timestamp and \
-                self._calltype == other._calltype
-    
-    #convert to dict for JSON manipulation 
-    def to_dict(self):
-        return {"origen": self.source, 
-                "destino": self.destination, 
-                "duracion": self._duration, 
-                "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S"), #convert to string to make sure the dict accepts it
-                "calltype": self._calltype}
-    
-    #for debugging
-    def __repr__(self):
-        return f"Call(source='{self.source}', destination='{self.destination}', duration={self._duration}, timestamp='{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}', calltype='{self._calltype}')"
+        return f"Call from {self.source} to {self.destination}, Duration: {self._duration}s, Time: {self.timestamp}, Type: {self._calltype}"
 
-call1 = Call("1201","1002",105,"2024-10-10 14:30:00", "inbound")
-#print(call1)
-print(repr(call1))
+    def __eq__(self, other):
+        if isinstance(other, Call):
+            return (
+                self.source == other.source and
+                self.destination == other.destination and
+                self._duration == other._duration and
+                self.timestamp == other.timestamp and
+                self._calltype == other._calltype
+            )
+        return False
+
+    def __repr__(self):
+        return f"Call(source='{self.source}', destination='{self.destination}', duration={self._duration}, timestamp='{self.timestamp}', calltype='{self._calltype}')"
+
+class CallLog:
+    def __init__(self):
+        """
+        Initializes an empty call log list.
+        """
+        self.listofcalls = []  # Stores Call objects
+    
+    def add_call(self, call: Call):
+        """
+        Adds a new Call object to the call log.
+        """
+        if isinstance(call, Call):
+            self.listofcalls.append(call)
+        else:
+            raise ValueError("Only instances of Call can be added to the log.")
+    
+    def show_calls(self):
+        """
+        Returns a list of all stored call objects.
+        """
+        return self.listofcalls  
+
+    def find_call_by_source_destination(self, source: str, destination: str):
+        """
+        Finds calls that match the given source and destination.
+        :param source: The source number as a string.
+        :param destination: The destination number as a string.
+        :return: List of Call objects that match the source and destination.
+        """
+        if not isinstance(source, str) or not isinstance(destination, str):
+            raise ValueError("Source and Destination must be strings.")
+        return [call for call in self.listofcalls if call.source == source and call.destination == destination]
+    
+    def find_call_by_timerange(self, startdate: str, enddate: str):
+        """
+        Filters and returns calls that fall within the specified time range.
+        :param startdate: Start datetime in 'YYYY-MM-DD HH:MM:SS' format.
+        :param enddate: End date in the same format.
+        :return: List of Call objects that have timestamps within the range.
+        """
+        try:
+            startdateconv = datetime.strptime(startdate, "%Y-%m-%d %H:%M:%S")
+            enddateconv = datetime.strptime(enddate, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            raise ValueError("Invalid date format, use YYYY-MM-DD HH:MM:SS")
+        
+        return [call for call in self.listofcalls if startdateconv <= call.timestamp <= enddateconv]
+    
+    def __repr__(self):
+        return f"CallLog({self.listofcalls})"
+
+# Example usage
+call1 = Call("1201", "1002", 105, "2024-10-12 14:30:00", "inbound")
+call2 = Call("1003", "1102", 200, "2024-10-12 15:00:00", "outbound")
+
+logllamadas = CallLog()
+logllamadas.add_call(call1)
+logllamadas.add_call(call2)
+
+print("All calls:", logllamadas.show_calls())
+print("Calls from 1201 to 1002:", logllamadas.find_call_by_source_destination("1201", "1002"))
+print("Calls in time range:", logllamadas.find_call_by_timerange("2024-10-10 13:30:00", "2024-10-10 15:00:00"))
