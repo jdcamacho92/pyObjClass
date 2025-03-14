@@ -1,7 +1,7 @@
 from datetime import datetime
 
 class Call:
-    # Initialize a Call object with source, destination, duration, timestamp, and call type
+    # Initialize a Call object with source, destination, duration, timestamp, and call type of the object
     def __init__(self, source: str, destination: str, duration: int, timestamp: str):
         self.source = source  # Source phone number
         self.destination = destination if isinstance(destination, str) else "Unknown"  # Ensure destination is a string
