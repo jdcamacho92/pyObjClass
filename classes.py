@@ -1,4 +1,7 @@
 from datetime import datetime
+from collections import Counter
+from collections import OrderedDict
+from collections import defaultdict
 
 class Call:
     # Initialize a Call object with source, destination, duration, timestamp, and call type of the object
@@ -42,7 +45,7 @@ class Call:
 
     def __str__(self):
         return f"Call from {self.source} to {self.destination} | Duration: {self._duration} seconds | Type: {self._calltype} | Time: {self.timestamp}"
-
+        #return "{} {} {} {} {}\n".format(self.source, self.destination, self._duration, self._calltype, self.timestamp)
     def __eq__(self, other):
         return (
             isinstance(other, Call) and
@@ -84,9 +87,68 @@ class CallLog:
         
         return [call for call in self.listofcalls if startdateconv <= call.timestamp <= enddateconv]
     
+    def list_of_calls(self):
+        return self.listofcalls
+    
     def show_calls(self):
         """Returns all stored calls in a formatted string"""
         return "\n".join(str(call) for call in self.listofcalls)
     
     def __repr__(self):
         return f"CallLog({self.listofcalls})"
+
+
+
+class CDRAnalyzer(CallLog): #heredar clase call para aprovechar listas de llamadas
+    "class to analyze CDRs"
+    def calls_per_source_extension(self):
+        # callstodict = []
+        # for x in self.listofcalls:
+        #     callstodict.append(x.__dict__)
+        # callsperextension = Counter(call["source"] for call in callstodict)
+        listofcalls2 = []
+        for y in self.listofcalls:
+            listofcalls2.append(y.source)
+        return Counter(listofcalls2)
+    
+    def filter_calls_per_duration(self, minduration, maxduration):
+        listofcalls2 = []
+        for y in self.listofcalls:
+            if y.duration >= minduration and y.duration <= maxduration:
+                listofcalls2.append(y)
+        return listofcalls2
+    
+    def most_active_tuple_calls (self):
+        callstodict = []
+        for x in self.listofcalls:
+            callstodict.append(x.__dict__)
+        #print (callstodict)
+        calltuple = Counter(tuple(sorted((call["source"], call["destination"]))) for call in callstodict)
+        duplawithmorecalls= max(calltuple, key=calltuple.get) 
+        max_calls = calltuple[duplawithmorecalls]
+        return duplawithmorecalls, max_calls
+    
+
+        
+    
+### zona de prints de pruebas ###
+analysis = CDRAnalyzer()
+call1 = Call("1001","2002",999,"2025-03-17 09:03:05")
+call2 = Call("1041","2002",1240,"2025-03-17 04:01:05")
+call3 = Call("1001","2002",1230,"2025-03-17 04:01:05")
+call4 = Call("1041","2002",1520,"2025-03-17 05:01:05")
+call5 = Call("1001","2102",1620,"2025-03-17 07:01:05")
+#print (call1)
+analysis.add_call(call1)
+analysis.add_call(call2)
+analysis.add_call(call3)
+analysis.add_call(call4)
+analysis.add_call(call5)
+#print (analysis.calls_per_source_extension())
+#print (analysis.filter_calls_per_duration(1500,1700))
+print (analysis.most_active_tuple_calls())
+#print (analysis.__dict__)
+#print (call1.__dict__)
+#cdrs = analysis.show_calls()
+#print (cdrs)
+### fin zona de prints de pruebas ###
