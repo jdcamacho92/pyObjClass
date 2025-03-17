@@ -102,31 +102,14 @@ class CallLog:
 class CDRAnalyzer(CallLog): #heredar clase call para aprovechar listas de llamadas
     "class to analyze CDRs"
     def calls_per_source_extension(self):
-        # callstodict = []
-        # for x in self.listofcalls:
-        #     callstodict.append(x.__dict__)
-        # callsperextension = Counter(call["source"] for call in callstodict)
-        listofcalls2 = []
-        for y in self.listofcalls:
-            listofcalls2.append(y.source)
-        return Counter(listofcalls2)
+        return Counter(call.source for call in self.listofcalls)
     
     def filter_calls_per_duration(self, minduration, maxduration):
-        listofcalls2 = []
-        for y in self.listofcalls:
-            if y.duration >= minduration and y.duration <= maxduration:
-                listofcalls2.append(y)
-        return listofcalls2
+        return [call for call in self.listofcalls if minduration <= call.duration <= maxduration]
     
     def most_active_tuple_calls (self):
-        callstodict = []
-        for x in self.listofcalls:
-            callstodict.append(x.__dict__)
-        #print (callstodict)
-        calltuple = Counter(tuple(sorted((call["source"], call["destination"]))) for call in callstodict)
-        duplawithmorecalls= max(calltuple, key=calltuple.get) 
-        max_calls = calltuple[duplawithmorecalls]
-        return duplawithmorecalls, max_calls
+        call_counts = Counter(tuple(sorted((call.source, call.destination))) for call in self.listofcalls)
+        return max(call_counts, key=call_counts.get)
     
 
         
@@ -146,7 +129,7 @@ analysis.add_call(call4)
 analysis.add_call(call5)
 #print (analysis.calls_per_source_extension())
 #print (analysis.filter_calls_per_duration(1500,1700))
-print (analysis.most_active_tuple_calls())
+#print (analysis.most_active_tuple_calls())
 #print (analysis.__dict__)
 #print (call1.__dict__)
 #cdrs = analysis.show_calls()
