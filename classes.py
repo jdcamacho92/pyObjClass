@@ -129,8 +129,20 @@ class CDRAnalyzer(CallLog): #heredar clase call para aprovechar listas de llamad
         plt.xticks(rotation=45)
         # Mostrar gráfico
         plt.show()
-    
+
+class InternationalCall(Call):
+
+    def __init__(self,  source: str, destination: str, duration: int, timestamp: str, destinationcountry: str):
+        super().__init__(source, destination, duration, timestamp)
+        self.destinationcountry = destinationcountry
+        self._calltype = "international"
+        
+    def __str__(self):
+        return f"Call from {self.source} to {self.destination} | Duration: {self._duration} seconds | Type: {self._calltype} | Time: {self.timestamp} | Country: {self.destinationcountry}"
+
 ### zona de prints de pruebas ###
+intrcall1 = InternationalCall("1001","2002",999,"2025-03-17 09:03:05","Colombia")
+print (intrcall1)
 analysis = CDRAnalyzer()
 call1 = Call("1001","2002",999,"2025-03-17 09:03:05")
 call2 = Call("1041","2002",1240,"2025-03-17 04:01:05")
@@ -143,7 +155,7 @@ analysis.add_call(call2)
 analysis.add_call(call3)
 analysis.add_call(call4)
 analysis.add_call(call5)
-analysis.plot_calls_per_extension()
+#analysis.plot_calls_per_extension()
 #print (analysis.calls_per_source_extension())
 #print (analysis.filter_calls_per_duration(1500,1700))
 #print (analysis.most_active_tuple_calls())
