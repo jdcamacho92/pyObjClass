@@ -19,7 +19,7 @@ class Call:
     
     @duration.setter
     def duration(self, new_duration):
-        if isinstance(new_duration, int) and new_duration > 0:
+        if isinstance(new_duration, int) and new_duration >= 0:
             self._duration = new_duration
         else:
             raise ValueError("Duration is not valid, it must be a positive integer")
