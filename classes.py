@@ -2,6 +2,7 @@ from datetime import datetime
 from collections import Counter
 from collections import OrderedDict
 from collections import defaultdict
+import matplotlib.pyplot as plt
 
 class Call:
     # Initialize a Call object with source, destination, duration, timestamp, and call type of the object
@@ -111,14 +112,29 @@ class CDRAnalyzer(CallLog): #heredar clase call para aprovechar listas de llamad
         call_counts = Counter(tuple(sorted((call.source, call.destination))) for call in self.listofcalls)
         return max(call_counts, key=call_counts.get)
     
+    def plot_calls_per_extension(self):
+        callsperext = Counter(call.source for call in self.listofcalls)
+        extensiones = list(callsperext.keys())  # Extensiones
+        cantidades = list(callsperext.values())  # Cantidad de llamadas
 
-        
+        # Crear gráfico de barras
+        plt.bar(extensiones, cantidades, color="skyblue", edgecolor="black")
+
+        # Etiquetas y título
+        plt.xlabel("Extensión")
+        plt.ylabel("Cantidad de llamadas")
+        plt.title("Cantidad de llamadas recibidas por extensión")
+
+        # Rotar etiquetas del eje X para mejor visualización
+        plt.xticks(rotation=45)
+        # Mostrar gráfico
+        plt.show()
     
 ### zona de prints de pruebas ###
 analysis = CDRAnalyzer()
 call1 = Call("1001","2002",999,"2025-03-17 09:03:05")
 call2 = Call("1041","2002",1240,"2025-03-17 04:01:05")
-call3 = Call("1001","2002",1230,"2025-03-17 04:01:05")
+call3 = Call("1101","2002",1230,"2025-03-17 04:01:05")
 call4 = Call("1041","2002",1520,"2025-03-17 05:01:05")
 call5 = Call("1001","2102",1620,"2025-03-17 07:01:05")
 #print (call1)
@@ -127,6 +143,7 @@ analysis.add_call(call2)
 analysis.add_call(call3)
 analysis.add_call(call4)
 analysis.add_call(call5)
+analysis.plot_calls_per_extension()
 #print (analysis.calls_per_source_extension())
 #print (analysis.filter_calls_per_duration(1500,1700))
 #print (analysis.most_active_tuple_calls())
